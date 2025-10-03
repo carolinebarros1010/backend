@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() { return request.auth != null; }
+
+    // Premium ebooks are stored under /ebooks. Only authenticated premium users can read.
+    match /ebooks/{file} {
+      allow read: if isSignedIn() && request.auth.token.premium == true;
+    }
+
+    // Disallow client writes; file uploads must happen via trusted server functions.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
